@@ -32,7 +32,7 @@ export const Container_dashboard = styled.div`
     .charts-container {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
+        justify-content: space-evenly;
         width: 100%;
         gap: 15px;
         padding: 15px;

@@ -62,21 +62,6 @@ const Dashboard = ({$toogleMenu, $setToogleMenu}) => {
                     } 
                 />
 
-                {/* <CardDashboard 
-                    $toogleMenu={$toogleMenu}
-                    $money={"0"} 
-                    text="Pagar Hoje" 
-                    cor={"rgb(255, 255, 255)"}
-                    cor2={" #FF9D00"}
-                    visible={true}
-                    icon={
-                        <RiMoneyDollarCircleFill  
-                            className="icon"
-                            style={{ color: " #FF9D00" }}
-                        />
-                    } 
-                /> */}
-
                 <CardDashboard 
                     $toogleMenu={$toogleMenu}
                     $moneyHoje={dados.parcelasComprasHoje} 

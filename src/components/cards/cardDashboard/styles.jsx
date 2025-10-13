@@ -6,7 +6,7 @@ export const Container = styled.div`
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    height: 125px;
+    height: 140px;
     width: 100%;
     min-width: 240px;
     border-radius: 8px;
@@ -35,8 +35,8 @@ export const Container = styled.div`
         }
 
         .icon {
-            height: 40px;
-            width: 40px;
+            height: 60px;
+            width: 60px;
         }
 
         .rotate-icon {

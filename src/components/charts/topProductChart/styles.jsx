@@ -6,14 +6,17 @@ export const Container = styled.div`
     justify-content: space-between;
     background-color: #fff;
     border-radius: 8px;
-    min-width: 190px;
     width: 240px;
     height: 200px;
-    padding: 8px;
+    padding: 10px;
     box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
 
-    @media (max-width: 440px) {
-        width: 90%;
+    @media (max-width: 584px) {
+        width: 420px;
+    }
+
+    @media (max-width: 490px) {
+        width: 100%;
     }
 
     .chart-header {
