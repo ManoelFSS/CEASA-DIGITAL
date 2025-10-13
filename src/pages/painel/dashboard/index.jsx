@@ -35,7 +35,7 @@ const Dashboard = ({$toogleMenu, $setToogleMenu}) => {
                 <CardDashboard 
                     $toogleMenu={$toogleMenu}
                     $money={dados.financeiro} 
-                    text="Vendas Total | Mês" 
+                    text="Valor total recebido | Mês" 
                     cor={"rgb(255, 255, 255)"}
                     cor2={"rgb(3, 205, 114)"}
                     visible={true}

@@ -2,11 +2,12 @@ import styled from "styled-components";
 
 export const Container = styled.section`
     display: flex;
+    gap: 10px;
     width: 100%;
     flex-direction: column;
     align-items: center;
-    height: 100%;
-    padding: 10px;
+    height: calc( 100vh - 50px );
+    padding: 15px 15px 0px;
     margin:auto;
     
     .box-right {
@@ -28,7 +29,7 @@ export const Container = styled.section`
         width: 100%;
         background-color: #f2f2f2f2;
         padding: 10px;
-        box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4);
+        box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.5);
         border-radius: 4px;
 
         .title {

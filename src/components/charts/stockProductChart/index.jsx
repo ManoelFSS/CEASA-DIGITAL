@@ -70,21 +70,21 @@ const StockProductChart = ({vendas, $height, $ocult}) => {
                 label: 'Estoque atual',
                 data: estoque,
                 backgroundColor: estoque.map((stock, index) => stock <= 0 ? 'red' : ' #FE7E01'),
-                minBarLength:5, 
+                minBarLength:10, 
                 // barThickness: 10,
             },
             {
                 label: 'vendas | Mês',
                 data: vendidos,
-                backgroundColor: 'rgb(0, 72, 255)',
-                minBarLength:5,
+                backgroundColor: valorEmDinheiro.map((stock, index) => stock <= 0 ? '#d4d4d4' : 'rgb(0, 72, 255)'), 
+                minBarLength:10,
                 // barThickness: 10,
             },
             {
                 label: 'Valor total em Vendas | Mês',
                 data: valorEmDinheiro,
-                backgroundColor: 'rgb(4, 184, 37)',    
-                minBarLength: 5, 
+                backgroundColor: valorEmDinheiro.map((stock, index) => stock <= 0 ? '#a7a5a5' : 'rgb(4, 184, 37)'),    
+                minBarLength: 10, 
                 // barThickness: 10,
             },
         ],
@@ -189,7 +189,7 @@ const StockProductChart = ({vendas, $height, $ocult}) => {
                                 <div key={index} className="legend-item">
                                     <span
                                         className="legend-color"
-                                        style={{ backgroundColor: dataset.backgroundColor }}
+                                        style={{ backgroundColor: dataset.label === 'vendas | Mês' ?  'rgb(0, 72, 255)' : 'rgb(4, 184, 37)' }}
                                     ></span>
                                     {dataset.label}
                                 </div>

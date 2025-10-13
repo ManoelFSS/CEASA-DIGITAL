@@ -116,9 +116,11 @@ const CompraDetails = ({setCompraModalDetails, userId, itemsPorPage, paginacao, 
     }
 
     const divRef = useRef();
-    const handleDownload = async (phone) => {
+    const handleDownload = async () => {
         const element = divRef.current;
-        const canvas = await html2canvas(element);
+        const canvas = await html2canvas(element, {
+            scale: 2,
+        });
         const dataUrl = canvas.toDataURL("image/png");
 
         const link = document.createElement("a");
@@ -285,7 +287,7 @@ const CompraDetails = ({setCompraModalDetails, userId, itemsPorPage, paginacao, 
                     <FaFileDownload 
                         className="icon" 
                         onClick={() => {
-                            handleDownload(vendaFilter?.phone);
+                            handleDownload();
                         }}
                     />
                 </div>

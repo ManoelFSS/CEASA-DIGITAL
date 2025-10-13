@@ -19,14 +19,14 @@ import { useDashboard } from "../../context/DashboardContext";
 // download
 import html2canvas from "html2canvas";
 
-const VendasDetails = ({setVendaModalDetails, userId, itemsPorPage, paginacao, ano, mes }) => {
+const VendasDetails = ({setVendaModalDetails, userId, itemsPorPage, paginacao, ano, mes, isSearchMode, valueSearch }) => {
 
     const { reloadDashboard, setReloadDashboard } = useDashboard();
     const {user} = useAuthContext();
     const {cadastrarLog} = useLogs();
 
     const { atualizarStatusParaDebitos} = useClientes();
-    const {contarVendasPendentesOuAtrasadas, vendas, setVendas, idVenda, editarParcelaStatus, buscarVendasPorAdmin, editarVenda, setIdVenda } = useVendas();
+    const {contarVendasPendentesOuAtrasadas, vendas, setVendas, idVenda, editarParcelaStatus, buscarVendasPorAdmin, editarVenda, setIdVenda, buscarVendasSeach } = useVendas();
 
     const [vendaFilter, setVendaFilter] = useState({});
     console.log(vendaFilter);
@@ -53,8 +53,16 @@ const VendasDetails = ({setVendaModalDetails, userId, itemsPorPage, paginacao, a
         const hendleStatusVenda  = async () => {
             await editarParcelaStatus(idParcela, 'Paga');
 
-            const getVendas = await buscarVendasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
+            let getVendas;
+            if (isSearchMode) {
+                getVendas = await buscarVendasSeach(valueSearch, userId, itemsPorPage, paginacao);
+            } else {
+                getVendas = await buscarVendasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
+            }
             setVendas(getVendas);
+
+            // const getVendas = await buscarVendasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
+            // setVendas(getVendas);
 
             const getVendaItem = getVendas.find(venda => venda.id === idVenda);
             const getParcelas = await getVendaItem?.parcelas_venda.filter(parcela => parcela.status === 'A vencer');
@@ -63,8 +71,17 @@ const VendasDetails = ({setVendaModalDetails, userId, itemsPorPage, paginacao, a
 
             if(getParcelas.length === 0) {
                 await editarVenda(idVenda, 'Paga');
-                const getVendas = await buscarVendasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
+
+                let getVendas;
+                if (isSearchMode) {
+                    getVendas = await buscarVendasSeach(valueSearch, userId, itemsPorPage, paginacao);
+                } else {
+                    getVendas = await buscarVendasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
+                }
                 setVendas(getVendas);
+
+                // const getVendas = await buscarVendasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
+                // setVendas(getVendas);
 
                 const getNumeroDeVendasDoCliente = await contarVendasPendentesOuAtrasadas(userId, getVendaItem.cliente_id);
                 console.log("contarVendas", getNumeroDeVendasDoCliente);
@@ -113,14 +130,16 @@ const VendasDetails = ({setVendaModalDetails, userId, itemsPorPage, paginacao, a
     }
 
     const divRef = useRef();
-    const handleDownload = async (phone) => {
+    const handleDownload = async () => {
         const element = divRef.current;
-        const canvas = await html2canvas(element);
-        const dataUrl = canvas.toDataURL("image/png");
+        const canvas = await html2canvas(element, {
+            scale: 2,
+        });
+        const dataUrl = canvas.toDataURL("image/jpeg");
 
         const link = document.createElement("a");
         link.href = dataUrl;
-        link.download = "div-capturada.png";
+        link.download = `venda-${vendaFilter?.name || 'cliente'}.jpeg`;
         link.click();
     };
 
@@ -291,7 +310,7 @@ const VendasDetails = ({setVendaModalDetails, userId, itemsPorPage, paginacao, a
                     <FaFileDownload 
                         className="icon" 
                         onClick={() => {
-                            handleDownload(vendaFilter?.phone);
+                            handleDownload();
                         }}
                     />
                 </div>

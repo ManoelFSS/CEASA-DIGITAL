@@ -8,7 +8,7 @@ export const Container_datails = styled.div`
     position: fixed;
     top: 0;
     left: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.329);
     z-index: 9999999;
     overflow-y: auto;
     padding: 20px 5px;
@@ -36,7 +36,7 @@ export const Container_datails = styled.div`
         flex-direction: column;
         padding: 15px;
         gap: 20px;
-        background-color:rgb(255, 255, 255);
+        background-color:#ffffff;
         border-radius: 6px;
         border: solid 1px #cccccc;
         box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.3);

@@ -2,83 +2,78 @@ import styled from "styled-components";
 
 export const Container = styled.div`
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     gap: 10px;
-    // width: 290px;
+    max-width: 300px;
     user-select: none;
 
     .icon-left {
-        width: 25px;
-        height: 25px;
+        min-width: 30px;
+        min-height: 30px;
         cursor: pointer;
-        trasition: color 0.3s ease;
+        transition: color 0.3s ease;
         padding: 2px;
         border-radius: 4px;
         background: rgb(255, 255, 255); /* fundo semi-transparente */
-        backdrop-filter: blur(10px); /* desfoque no fundo */
-        -webkit-backdrop-filter: blur(10px); /* Safari */
-        border: 1px solid rgb(255, 255, 255); /* borda brilhante */
-        box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.43); /* sombra suave */
-        
-        &:hover {
-            padding: 3px;
-            border-radius: 4px;
-            color: #FE7E01;
-        }
-    }
-
-    button {
-        width: 15px;
-        height: 15px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
-        font-size: 0.8rem;
-        border: none;
-        transition: background-color 0.3s ease;
-        font-weight: 700;
-        border-radius: 2px;
-    }
-
-    button:hover, .active {
-        width: 25px;
-        height: 25px;
-        cursor: pointer;
-        trasition: color 0.3s ease;
-        padding: 2px;
-        border-radius: 4px;
-        background: rgb(255, 255, 255); /* fundo semi-transparente */
-        backdrop-filter: blur(10px); /* desfoque no fundo */
-        -webkit-backdrop-filter: blur(10px); /* Safari */
-        box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.43); /* sombra suave */
-        color: #FE7E01;
-        font-weight: 900;
+        box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.3); /* sombra suave */
         
         &:hover {
             color: #007E2A;
         }
     }
 
-    .icon-right {
-        width: 25px;
-        height: 25px;
+    .body-pages {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+    button {
+        min-width: 25px;
+        min-height: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         cursor: pointer;
-        trasition: color 0.3s ease;
-        padding: 2px;
-        border-radius: 4px;
+        box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
+        font-size: 1rem;
+        border: none;
+        transition: background-color 0.3s ease;
         background: rgb(255, 255, 255); /* fundo semi-transparente */
-        backdrop-filter: blur(10px); /* desfoque no fundo */
-        -webkit-backdrop-filter: blur(10px); /* Safari */
-        border: 1px solid rgb(255, 255, 255); /* borda brilhante */
-        box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.43); /* sombra suave */
+        font-weight: 900;
+        border-radius: 2px;
+
+        &:hover {
+            color: #007E2A;
+        }
+    }
+
+    .active {
+        min-width: 25px;
+        min-height: 25px;
+        color: #FE7E01;
         
         &:hover {
-            padding: 3px;
-            border-radius: 4px;
-            color: #FE7E01;
+            color: #FE7E01 !important;
+        }
+    }
+
+    .icon-right {
+        min-width: 30px;
+        min-height: 30px;
+        cursor: pointer;
+        color: #000000;
+        transition: color 0.3s ease;
+        padding: 2px;
+        border-radius: 4px;
+        background: #ffffff; /* fundo semi-transparente */
+        box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.3); /* sombra suave */
+        
+        &:hover {
+            color: #007E2A;
         }
     }
 `

@@ -39,7 +39,7 @@ export const Container = styled.section`
                 width: 25px;
                 height: 25px;
                 cursor: pointer;
-                trasition: color 0.3s ease;
+                animation: color 0.3s ease;
                 padding: 2px;
                 border-radius: 4px;
                 background: rgb(255, 255, 255); /* fundo semi-transparente */

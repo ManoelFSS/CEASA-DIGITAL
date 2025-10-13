@@ -38,21 +38,21 @@ const Pagination = ({ $totalPages, $setPaginacao, $paginacao }) => {
                 className="icon-left" 
                 onClick={() => {handlePageChange($paginacao > 1 ? $paginacao - 1 : 1), $setPaginacao($paginacao > 1 ? $paginacao - 1 : 1)}} 
             />
-            
-            {range[0] > 1 && <span>...</span>}
-            
-            {range.map((p) => (
-                <button
-                    key={p}
-                    className={p === $paginacao ? "active" : ""}
-                    onClick={() => {handlePageChange(p), $setPaginacao(p)}}
-                >
-                    {p}
-                </button>
-            ))}
-            
-            {range[range.length - 1] < $totalPages && <span>...</span>}
-            
+
+            <div className="body-pages">
+                {range[0] > 1 && <span>...</span>}
+                {range.map((p) => (
+                    <button
+                        key={p}
+                        className={p === $paginacao ? "active" : ""}
+                        onClick={() => {handlePageChange(p), $setPaginacao(p)}}
+                    >
+                        {p}
+                    </button>
+                ))}
+                 {range[range.length - 1] < $totalPages && <span>...</span>}
+            </div>
+
             <MdOutlineKeyboardArrowRight 
                 className="icon-right" 
                 onClick={() => { handlePageChange($paginacao < $totalPages ? $paginacao + 1 : $paginacao), $setPaginacao($paginacao < $totalPages ? $paginacao + 1 : $paginacao) }} 

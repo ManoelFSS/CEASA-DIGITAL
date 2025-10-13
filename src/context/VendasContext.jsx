@@ -23,56 +23,6 @@ export const VendasProvider = ({ children }) => {
     const [idVenda, setIdVenda] = useState('');// controle do campo idClient
 
 
-    // const editarVenda = async (venda_id, status) => {
-    //     try {
-    //         const { data: vendaAtualizada, error: erroVenda } = await supabase
-    //             .from('vendas')
-    //             .update({ status })
-    //             .eq('id', venda_id);
-
-    //         if (erroVenda) {
-    //             console.error('[ERRO VENDA] Falha ao atualizar status da venda:', {
-    //                 venda_id,
-    //                 status,
-    //                 erro: erroVenda.message,
-    //             });
-    //             return;
-    //         }
-
-    //         console.log('[SUCESSO VENDA] Venda atualizada com sucesso:', vendaAtualizada);
-
-    //         if (status === "Cancelada") {
-    //             const { data: parcelasAtualizadas, error: erroParcelas } = await supabase
-    //                 .from('parcelas_venda')
-    //                 .update({ status: "Cancelada" })
-    //                 .eq('venda_id', venda_id);
-
-    //             if (erroParcelas) {
-    //                 console.error('[ERRO PARCELAS] Falha ao cancelar parcelas da venda:', {
-    //                     venda_id,
-    //                     erro: erroParcelas.message,
-    //                 });
-    //             } else {
-    //                 console.log('[SUCESSO PARCELAS] Parcelas canceladas com sucesso:', parcelasAtualizadas);
-    //                 setReloadDashboard(!reloadDashboard); // reload dasboard
-    //             }
-
-    //             const getNumeroDeVendasDoCliente = await contarVendasPendentesOuAtrasadas(userId,  idClient);
-    //             console.log("contarVendas", getNumeroDeVendasDoCliente);
-    //             if(getNumeroDeVendasDoCliente === 0) {
-    //                 await atualizarStatusParaDebitos(idClient, "Em Dias");
-    //                 console.log("cliente nao tem nemhuma venda pendente, status Em Dias"); ///////////////////
-    //             }
-    //         }
-
-    //     } catch (err) {
-    //         console.error('[ERRO GERAL] Erro inesperado ao editar a venda:', {
-    //             venda_id,
-    //             status,
-    //             erro: err.message,
-    //         });
-    //     }
-    // };
 
     const editarVenda = async (venda_id, status) => {
         try {
@@ -166,29 +116,55 @@ export const VendasProvider = ({ children }) => {
             }
         };
 
-    
-    const buscarVendasSeach = async (searchText, adminId) => {
-        if (!searchText || !adminId) return [];
 
-        console.log("vendasSeach");
-        try {
-            // Normaliza o texto
-            const texto = `%${searchText.toLowerCase()}%`;
-            // Busca múltiplas colunas com `or`
-            const { data, error } = await supabase
+const buscarVendasSeach = async (searchText, adminId, limitepage, paginacao) => {
+    if (!searchText || !adminId) return [];
+
+    try {
+        const texto = `%${searchText.toLowerCase()}%`;
+
+        // Calcular range de paginação
+        const from = (paginacao - 1) * limitepage;
+        const to = from + limitepage - 1;
+
+        // Buscar total de registros da busca
+        const { count, error: countError } = await supabase
             .from("vendas")
-            .select("*")
+            .select("id", { count: "exact", head: true })
             .eq("adminid", adminId)
             .or(`name.ilike.${texto},phone.ilike.${texto}`);
 
-            if (error) throw error;
+        if (countError) throw countError;
 
-            return data;
-        } catch (error) {
-            console.error("Erro ao buscar venda:", error.message || error);
-            return [];
-        }
-    };
+        setCaunterVendas(count); // atualiza total para a paginação
+
+        // Buscar os registros paginados **com parcelas e itens**
+        const { data, error } = await supabase
+            .from("vendas")
+            .select(`
+                *,
+                parcelas_venda(*),
+                itens_venda(*)
+            `)
+            .eq("adminid", adminId)
+            .or(`name.ilike.${texto},phone.ilike.${texto}`)
+            .order("created_at", { ascending: false })
+            .range(from, to);
+
+        if (error) throw error;
+
+        return data;
+    } catch (error) {
+        console.error("Erro ao buscar venda:", error.message || error);
+        return [];
+    }
+};
+
+
+
+
+
+
 
     const editarParcelaStatus = async (parcela_id, status)  => {
         const { data, error } = await supabase

@@ -1,3 +1,4 @@
+
 import { useState, useEffect} from "react";
 import { Container, ContainerTable } from "./styles"
 // components
@@ -5,14 +6,13 @@ import BtnNavigate from "../../../components/btns/btnNavigate"
 import Select from "../../../components/select"
 import Search from "../../../components/search"
 import Pagination from "../../../components/pagination"
-import ProductForm from "../../../components/forms/systemForm/produtForm";
+// import ProductForm from "../../../components/forms/systemForm/produtForm";
 import Messege from "../../../components/messege";
 import Loading from "../../../components/loading";
 import MonthYearSelector from "../../../components/MonthYearSelector";
 import VendasDetails from "../../../components/vendasDetails";
 import Title from "../../../components/title";
 // icons
-import { FaUserPlus} from "react-icons/fa";
 import {  PiHandTapFill  } from "react-icons/pi";
 import { HiMiniStar } from "react-icons/hi2";
 import { AiOutlineAlignRight } from "react-icons/ai";
@@ -26,7 +26,6 @@ import { IoLogoWhatsapp } from "react-icons/io";
 import { TbCancel } from "react-icons/tb";
 import { HiOutlineInformationCircle } from 'react-icons/hi';
 import { IoMdPerson } from "react-icons/io";
-
 // hooks
 import useSelect from "../../../hooks/useSelect"
 // context
@@ -35,12 +34,11 @@ import { useVendas } from "../../../context/VendasContext";
 import { useClientes } from "../../../context/ClientesContext";
 //image
 import Perfil from "../../../assets/perfil.png"
-// rota aninhada
 
-const Sales = () => {;
+const Sales = () => {
 
     const { setIdClient, caunterVendas } = useClientes();
-
+    const {user, userId} = useAuthContext();
     const { 
         buscarVendasPorAdmin,
         messege, setMessege,
@@ -50,12 +48,11 @@ const Sales = () => {;
         editarVenda,
         idVenda, setIdVenda,
     } = useVendas();
-    
-    const {user, setSelectForm, userId} = useAuthContext();
+
     const [valueSearch, setValueSearch] = useState('');
     const [dataNotFound, setDataNotFound] = useState(false);
-    const [cardList, setCardList] = useState(false);
-    const [btnName, setBtnName] = useState("Cadastrar");
+    // const [cardList, setCardList] = useState(false);
+    // const [btnName, setBtnName] = useState("Cadastrar");
     const [deleteControl, setDeleteControl] = useState(null);
     const [confirmCancelaVenda, setConfirmCancelaVenda] = useState(false);
     const [closeBtn, setCloseBtn] = useState(false);
@@ -63,10 +60,14 @@ const Sales = () => {;
     const [ano, setAno] = useState(new Date().getFullYear());
     const [vendaModalDetails, setVendaModalDetails] = useState(false);
     const [textBtn, setTextBtn] = useState("Cancelar");
+    const [isSearchMode, setIsSearchMode] = useState(false); // novo
 
     const handleDateChange = ({ month, year }) => {
         setAno(year);
         setMes(month + 1);
+        setPaginacao(1);
+        setIsSearchMode(false);  // 👈 volta para o modo normal
+        setValueSearch('');
     };
 
     const dataHeader = [
@@ -79,63 +80,74 @@ const Sales = () => {;
         { name: "Valor de Entrada", icon: <GiReceiveMoney  className="icon" /> },
         { name: "Status", icon: <HiMiniStar className="icon" /> },
         {name: "Ação", icon: <PiHandTapFill className="icon" />}
-        
     ]
 
     const data = [
+        { category: "Paga" },
         { category: "Cancelada" },
         { category: "Pendente" },
     ];
 
-    const img = Perfil;
-    const { select, setSelect } = useSelect();
-    const [paginacao, setPaginacao] = useState(1);
+    const { select, setSelect } = useSelect("");// select
+    const [paginacao, setPaginacao] = useState(1);// paginação
 
-    const itemsPorPage = 100;
-    const totalPages = Math.ceil(caunterVendas / itemsPorPage);
+    const itemsPorPage = 50; // quantidade de vendas por pagina
+    const totalPages = Math.ceil(caunterVendas / itemsPorPage); // total de paginas
 
+    // 🔹 Resetar paginação ao mudar mês/ano
     useEffect(() => {
-        if(totalPages > 1 ) return setPaginacao(1);
+        if(totalPages > 1 ) setPaginacao(1);
     }, [mes, ano]);
 
+    // 🔹 Buscar vendas normais
     useEffect(() => {
+        if(isSearchMode) return; // 👈 volta para o modo normal
+
         setDataNotFound(false);
-        console.log(paginacao)
         const hendlerGetProduct = async () => {
             const vendaData = await  buscarVendasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
             if(vendaData.length === 0) setTimeout(() => setDataNotFound(true), 2000);
             setVendas(vendaData)
         }
         hendlerGetProduct();    
-    }, [closeModal, paginacao, deleteControl, mes, ano]);
+    }, [closeModal, paginacao, deleteControl, mes, ano, userId, isSearchMode]);
 
+
+    // Buscar vendas quando usar pesquisa
     useEffect(() => {
-        const searchLength = valueSearch.split("").length;
+        const fetchSearch = async () => {
+            if (!isSearchMode) return; // só dispara se for busca
 
-        if(searchLength <= 0) {
-            const hendlerGetVendas = async () => {
-                const vendas = await  buscarVendasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
-                if(vendas.length === 0) setTimeout(() => setDataNotFound(true), 2000);
-                setVendas(vendas)
-                
-            }
-            hendlerGetVendas();
+            setDataNotFound(false);
+            const vendaSeach = await buscarVendasSeach(valueSearch, userId, itemsPorPage, paginacao);
+            if(vendaSeach.length === 0) setTimeout(() => setDataNotFound(true), 2000);
+            setVendas(vendaSeach);
+        };
+        fetchSearch();
+    }, [paginacao, isSearchMode, valueSearch, userId]);
+
+    // 🔹 Resetar venda quando search for apagado
+    useEffect(() => {
+        if(valueSearch.length <= 0){
+            setIsSearchMode(false);
+            setPaginacao(1);
         }
     }, [valueSearch]);
 
+    // 🔹 Buscar vendas no clique do search
     const hendlerGetclienteSearch = async () => {
-        setVendas([])
-        const vendaSeach = await   buscarVendasSeach(valueSearch, userId);
+        if(!valueSearch) return;
+        setIsSearchMode(true);
+        setPaginacao(1);
+        setVendas([]);
+        const vendaSeach = await buscarVendasSeach(valueSearch, userId, itemsPorPage, 1);
         if(vendaSeach.length === 0) setTimeout(() => setDataNotFound(true), 2000);
-        setVendas(vendaSeach)
-        console.log(vendaSeach)
-    }
+        setVendas(vendaSeach);
+    };
 
+    // 🔹 Cancelar venda
     useEffect(() => {
-
-        if(!confirmCancelaVenda) return
-        if(!idVenda) return
-        
+        if(!confirmCancelaVenda || !idVenda) return;
         const cancelarVenda = async () => {
             await editarVenda(idVenda, "Cancelada");
             setDeleteControl(!deleteControl)
@@ -145,7 +157,6 @@ const Sales = () => {;
             setConfirmCancelaVenda(false);
         }
         cancelarVenda(); 
-
     }, [confirmCancelaVenda]);
 
     const hendleCancelaVenda = (id) => {
@@ -154,10 +165,21 @@ const Sales = () => {;
         setCloseBtn(true);
     }
 
-    console.log(new Date().toISOString().split("T")[0])
+    const totalPago = vendas?.reduce((money, venda) => {
+        if (venda.status === "Paga") {
+            // soma valor total da venda
+            return money + (venda.valor_total || 0);
+        } else if (venda.parcelas_venda?.length) {
+            // soma apenas parcelas pagas
+            const parcelasPagas = venda.parcelas_venda
+                .filter(parcela => parcela.status === "Paga")
+                .reduce((total, parcela) => total + (parcela.valor_parcela || 0), 0);
+            return money + parcelasPagas;
+        }
+        return money;
+    }, 0);
 
-    console.log(vendas)
-
+    const totalPagoFormatado = totalPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     return (
         <Container>
@@ -165,23 +187,20 @@ const Sales = () => {;
                 <div className="title">
                     <IoBagHandleSharp className="icon" />
                     <Title $text="Vendas" $fontSize={"1.5rem"}  $cor={"var(  --color-text-primary )"} />
-                    <p>
-                        {vendas
-                            ?.filter(item => item.status !== "Cancelada") // Remove canceladas
-                            .reduce((money, item) => money + item.valor_total, 0) // Soma só os válidos
-                            .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                        }
-                    </p>
+                    <p>{totalPagoFormatado}</p>
                 </div>
+                {totalPages > 1 && <Pagination 
+                    $totalPages={totalPages} 
+                    $paginacao={paginacao} 
+                    $setPaginacao={setPaginacao}
+                />}
                 <div className="filter">
-                    
                     <Select     
                         select={select} 
                         setSelect={setSelect}
                         data={data} 
                         $width={"130px"}
                     />
-                    
                     <Search 
                         valueSearch={valueSearch}
                         setValueSearch={setValueSearch}
@@ -190,30 +209,20 @@ const Sales = () => {;
                         onClick={hendlerGetclienteSearch}
                     />
                     <MonthYearSelector userRegisterYear={user?.createdat?.slice(0, 4)} onChange={handleDateChange} />
-                    {totalPages > 1 && <Pagination 
-                        $totalPages={totalPages} 
-                        $paginacao={paginacao} 
-                        $setPaginacao={setPaginacao}
-                    />}
                 </div>
             </section>
             <ContainerTable>
-                {
-                    cardList ? (
-                    <>
-                    </>
-                    ) : (
-                    <section className="table">
-                        <div className="header">
-                            <ul className="header-list">
-                                {dataHeader.map((item, index) => (
-                                <li key={index}>
-                                    {item.name} {item.icon}
-                                </li>
-                                ))}
-                            </ul>
-                        </div>
-                        {vendas?.length > 0 ? (
+                <section className="table">
+                    <div className="header">
+                        <ul className="header-list">
+                            {dataHeader.map((item, index) => (
+                            <li key={index}>
+                                {item.name} {item.icon}
+                            </li>
+                            ))}
+                        </ul>
+                    </div>
+                    {vendas?.length > 0 ? (
                         <div className="body">
                             {vendas.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                             .filter(item => {
@@ -250,7 +259,6 @@ const Sales = () => {;
                                         />
                                         <HiOutlineInformationCircle 
                                             className="icon" 
-                                            // style={{ hover: "rgb(53, 53, 53)" }} 
                                             onClick={() => {
                                                 setIdVenda(item.id);
                                                 setVendaModalDetails(true);
@@ -258,7 +266,6 @@ const Sales = () => {;
                                         />
                                         <TbCancel  
                                             className="icon" 
-                                            // style={{ ho: "rgb(224, 2, 2)" }} 
                                             onClick={() => {
                                                 item.status !== "Cancelada" ? hendleCancelaVenda(item.id) : setMessege({title: "Atenção", message: "Essa venda ja foi cancelada!"});
                                                 item.status === "Cancelada" && setCloseBtn(false)
@@ -270,21 +277,22 @@ const Sales = () => {;
                                 </ul>
                             ))}
                         </div>
-                        ) : !dataNotFound ? (
+                    ) : !dataNotFound ? (
                         <div style={{ margin: "auto" }}><Loading /></div>
-                        ) : (
+                    ) : (
                         <p style={{ fontSize: "1.2rem", fontWeight: "bold", margin: "auto" }}>
-                            Nenhuma Venda resistrada !
+                            Nenhuma Venda registrada !
                         </p>
-                        )}
-                    </section>
-                    )
-                }
-                </ContainerTable>
+                    )}
+                </section>
+            </ContainerTable>
 
-            {closeModal && <ProductForm  $color={"#fff"} setCloseModal={setCloseModal} btnName={btnName} setBtnName={setBtnName} />}
-            { messege && <Messege setIdVenda={setIdVenda} setTextBtn={setTextBtn} $buttonText={textBtn} button={closeBtn && <BtnNavigate $text="Sim" onClick={() => setConfirmCancelaVenda(true)} />} $title={messege.title} $text={messege.message} $setMessege={setMessege} /> }
-            { vendaModalDetails && 
+            {messege && 
+                <Messege setIdVenda={setIdVenda} setTextBtn={setTextBtn} $buttonText={textBtn} button={closeBtn &&   <BtnNavigate $text="Sim" onClick={() => setConfirmCancelaVenda(true)} />} $title={messege.title} $text=  {messege.message} $setMessege={setMessege} 
+                />
+            }
+
+            {vendaModalDetails && 
                 <VendasDetails  
                     setVendaModalDetails={setVendaModalDetails} 
                     userId={userId} 
@@ -292,6 +300,8 @@ const Sales = () => {;
                     paginacao={paginacao} 
                     ano={ano} 
                     mes={mes} 
+                    isSearchMode={isSearchMode}
+                    valueSearch={valueSearch}
                 />
             }
         </Container>
