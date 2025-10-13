@@ -125,6 +125,7 @@ const Sales = () => {
         };
         fetchSearch();
     }, [paginacao, isSearchMode, valueSearch, userId]);
+    
 
     // 🔹 Resetar venda quando search for apagado
     useEffect(() => {

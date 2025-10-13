@@ -39,7 +39,7 @@ export const Container = styled.section`
                 width: 25px;
                 height: 25px;
                 cursor: pointer;
-                trasition: color 0.3s ease;
+                transition: color 0.3s ease;
                 padding: 2px;
                 border-radius: 4px;
                 background: rgb(255, 255, 255); /* fundo semi-transparente */
@@ -74,7 +74,7 @@ export const ContainerTable = styled.section`
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 40px;
         width: 100%;
         padding: 14px 0;
         overflow: auto;

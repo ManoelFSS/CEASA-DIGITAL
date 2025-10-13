@@ -9,7 +9,7 @@ const VendasContext = createContext();
 
 export const VendasProvider = ({ children }) => {
 
-    const { reloadDashboard, setReloadDashboard } = useDashboard();
+    const { setReloadDashboard } = useDashboard();
     const { idClient, atualizarStatusParaDebitos, setCaunterVendas } = useClientes();
     const { userId} = useAuthContext();
 
@@ -21,7 +21,6 @@ export const VendasProvider = ({ children }) => {
     const [name, setName] = useState('');// controle do campo name
     const [phone, setPhone] = useState('');// controle do campo phone
     const [idVenda, setIdVenda] = useState('');// controle do campo idClient
-
 
 
     const editarVenda = async (venda_id, status) => {
@@ -60,110 +59,103 @@ export const VendasProvider = ({ children }) => {
     };
 
 
-
-
     // Função principal para buscar vendas de um admin com paginação, incluindo pendentes ou atrasadas
-        const buscarVendasPorAdmin = async (adminId, limitepage, paginacao, ano, mes) => {
-            try {
-                // Validar parâmetros
-                if (!adminId || limitepage <= 0 || paginacao < 1 || !ano || !mes) {
-                    throw new Error("Parâmetros inválidos: adminId, limitepage, paginacao, ano ou mes");
-                }
-
-                // Construir intervalo de datas (do primeiro ao último dia do mês)
-                const inicioMes = `${ano}-${String(mes).padStart(2, '0')}-01T00:00:00.000Z`;
-                const fimMes = new Date(Date.UTC(ano, mes, 0, 23, 59, 59, 999)).toISOString();
-
-                // Calcular range para paginação
-                const from = (paginacao - 1) * limitepage;
-                const to = from + limitepage - 1;
-
-                // Contar total de vendas do mês ou com status pendente (tiramos 'Atrasada')
-                const { count, error: countError } = await supabase
-                    .from("vendas")
-                    .select("id", { count: "exact", head: true })
-                    .eq("adminid", adminId)
-                    .or(
-                        `and(created_at.gte.${inicioMes},created_at.lte.${fimMes}),and(status.eq.Pendente,created_at.lte.${fimMes})`
-                    );
-
-                if (countError) throw countError;
-
-                // Atualiza o contador
-                setCaunterVendas(count);
-
-                // Buscar vendas com dados das parcelas e itens
-                const { data, error } = await supabase
-                    .from("vendas")
-                    .select(`
-                        *,
-                        parcelas_venda(*),
-                        itens_venda(*)
-                    `)
-                    .eq("adminid", adminId)
-                    .or(
-                        `and(created_at.gte.${inicioMes},created_at.lte.${fimMes}),and(status.eq.Pendente,created_at.lte.${fimMes})`
-                    )
-                    .order("contador_vendas", { ascending: true })
-                    .range(from, to);
-
-                if (error) throw error;
-
-                return data;
-            } catch (error) {
-                console.error("Erro ao buscar vendas:", error);
-                throw error;
+    const buscarVendasPorAdmin = async (adminId, limitepage, paginacao, ano, mes) => {
+        try {
+            // Validar parâmetros
+            if (!adminId || limitepage <= 0 || paginacao < 1 || !ano || !mes) {
+                throw new Error("Parâmetros inválidos: adminId, limitepage, paginacao, ano ou mes");
             }
-        };
+
+            // Construir intervalo de datas (do primeiro ao último dia do mês)
+            const inicioMes = `${ano}-${String(mes).padStart(2, '0')}-01T00:00:00.000Z`;
+            const fimMes = new Date(Date.UTC(ano, mes, 0, 23, 59, 59, 999)).toISOString();
+
+            // Calcular range para paginação
+            const from = (paginacao - 1) * limitepage;
+            const to = from + limitepage - 1;
+
+            // Contar total de vendas do mês ou com status pendente (tiramos 'Atrasada')
+            const { count, error: countError } = await supabase
+                .from("vendas")
+                .select("id", { count: "exact", head: true })
+                .eq("adminid", adminId)
+                .or(
+                    `and(created_at.gte.${inicioMes},created_at.lte.${fimMes}),and(status.eq.Pendente,created_at.lte.${fimMes})`
+                );
+
+            if (countError) throw countError;
+
+            // Atualiza o contador
+            setCaunterVendas(count);
+
+            // Buscar vendas com dados das parcelas e itens
+            const { data, error } = await supabase
+                .from("vendas")
+                .select(`
+                    *,
+                    parcelas_venda(*),
+                    itens_venda(*)
+                `)
+                .eq("adminid", adminId)
+                .or(
+                    `and(created_at.gte.${inicioMes},created_at.lte.${fimMes}),and(status.eq.Pendente,created_at.lte.${fimMes})`
+                )
+                .order("contador_vendas", { ascending: true })
+                .range(from, to);
+
+            if (error) throw error;
+
+            return data;
+        } catch (error) {
+            console.error("Erro ao buscar vendas:", error);
+            throw error;
+        }
+    };
 
 
-const buscarVendasSeach = async (searchText, adminId, limitepage, paginacao) => {
-    if (!searchText || !adminId) return [];
+    const buscarVendasSeach = async (searchText, adminId, limitepage, paginacao) => {
+        if (!searchText || !adminId) return [];
 
-    try {
-        const texto = `%${searchText.toLowerCase()}%`;
+        try {
+            const texto = `%${searchText.toLowerCase()}%`;
 
-        // Calcular range de paginação
-        const from = (paginacao - 1) * limitepage;
-        const to = from + limitepage - 1;
+            // Calcular range de paginação
+            const from = (paginacao - 1) * limitepage;
+            const to = from + limitepage - 1;
 
-        // Buscar total de registros da busca
-        const { count, error: countError } = await supabase
-            .from("vendas")
-            .select("id", { count: "exact", head: true })
-            .eq("adminid", adminId)
-            .or(`name.ilike.${texto},phone.ilike.${texto}`);
+            // Buscar total de registros da busca
+            const { count, error: countError } = await supabase
+                .from("vendas")
+                .select("id", { count: "exact", head: true })
+                .eq("adminid", adminId)
+                .or(`name.ilike.${texto},phone.ilike.${texto}`);
 
-        if (countError) throw countError;
+            if (countError) throw countError;
 
-        setCaunterVendas(count); // atualiza total para a paginação
+            setCaunterVendas(count); // atualiza total para a paginação
 
-        // Buscar os registros paginados **com parcelas e itens**
-        const { data, error } = await supabase
-            .from("vendas")
-            .select(`
-                *,
-                parcelas_venda(*),
-                itens_venda(*)
-            `)
-            .eq("adminid", adminId)
-            .or(`name.ilike.${texto},phone.ilike.${texto}`)
-            .order("created_at", { ascending: false })
-            .range(from, to);
+            // Buscar os registros paginados **com parcelas e itens**
+            const { data, error } = await supabase
+                .from("vendas")
+                .select(`
+                    *,
+                    parcelas_venda(*),
+                    itens_venda(*)
+                `)
+                .eq("adminid", adminId)
+                .or(`name.ilike.${texto},phone.ilike.${texto}`)
+                .order("created_at", { ascending: false })
+                .range(from, to);
 
-        if (error) throw error;
+            if (error) throw error;
 
-        return data;
-    } catch (error) {
-        console.error("Erro ao buscar venda:", error.message || error);
-        return [];
-    }
-};
-
-
-
-
-
+            return data;
+        } catch (error) {
+            console.error("Erro ao buscar venda:", error.message || error);
+            return [];
+        }
+    };
 
 
     const editarParcelaStatus = async (parcela_id, status)  => {

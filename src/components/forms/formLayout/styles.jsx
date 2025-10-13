@@ -8,7 +8,6 @@ export const Container = styled.div`
     border: 1px solid rgba(255, 255, 255, 0.5); /* borda brilhante */
     -webkit-backdrop-filter: blur(10px); /* Safari */
     box-shadow: 1px 2px 5px 0 rgba(255, 255, 255, 0.5), inset 1px 2px 100px 0 rgba(255, 255, 255, 0.09); /* sombra suave */
-
     border-radius: 6px;
     position: relative;
     margin: auto;
@@ -62,37 +61,32 @@ export const Container = styled.div`
     .box-check {
         display: flex;
         align-items: center;
+        border: solid 1px #ff0000;
 
         .checkd {
             width: 20px;
             height: 20px;
             border: none;
-            box-shadow: none;      
-            
+            box-shadow: none;  
+    
             @media (min-width: 1920px) {
-                width: 4vh;
-                height: 4vh;
+                width: 3vh;
+                height: 3vh;
             }
         }
 
         .text-check {
-            display: flex;
-            width: 100%;
-            flex-direction: column;
-            gap: 5px;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 3px;
-            
-            span {
-                width: 245px;
-                font-weight: 800;
-                font-size: 0.9rem;
-                text-align: center;
-                
-                @media (min-width: 1920px) {
-                    font-size: 2vh;
-                    width: 360px;
+            width: 280px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            padding: 10px 10px 10px 20px ;
+
+            a {
+                font-size: 1rem;
+                font-weight: 600;
+                color: #2c2c2c;
+                &:hover {
+                    color: #000000
                 }
             }
         }
@@ -109,7 +103,7 @@ export const Container = styled.div`
         font-weight: 600;
         cursor: pointer;
         font-size: 1rem;
-        trasition: color 0.3s ease;
+        transition: color 0.3s ease;
         border-radius: 4px;
         margin-top: 8px;
         padding: 0 5px;

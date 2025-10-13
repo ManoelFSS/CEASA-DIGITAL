@@ -14,7 +14,7 @@ export const Input = styled.input`
     font-size: 1rem;
     font-weight: 500;
     outline: none;
-    trasition: background-color 0.3s ease;
+    transition: background-color 0.3s ease;
 
     &:focus ~ .info-balloon {
         display: flex;
@@ -32,7 +32,6 @@ export const Input = styled.input`
     
 `
 export const Container = styled.div`
-    width: 100%;
     position: relative;
     
     .icon {
@@ -40,7 +39,7 @@ export const Container = styled.div`
         top: 9px;
         right: 10px;
         cursor: pointer;
-        trasition: color 0.3s ease;
+        transition: color 0.3s ease;
         font-size: 1.2rem;
 
         @media (min-width: 1920px) {
@@ -59,7 +58,7 @@ export const Container = styled.div`
         top: -22px;
         left: 60px;
         cursor: pointer;
-        trasition: color 0.3s ease;
+        transition: color 0.3s ease;
         font-size: 1.2rem;
         color: var( --color-icon-hover );
         border-radius: 50%;
@@ -69,34 +68,36 @@ export const Container = styled.div`
         }
 
         @media (min-width: 1920px) {
-            top: -2vh;
-            left: 6vh;
+            top: -3vh;
+            left: 7.5vh;
             font-size: 2.5vh;
         }
     }
 
-    .info-balloon {
+    .info-balloon{
         display: none;
-        width: 310px;
-        gap: 6px;
+        width: 320px;
+        height: 220px;
+        gap: 10px;
         flex-direction: column;
-        position: absolute;
-        bottom: 70px;
-        left: 0px;
+        position: absolute; 
+        top: -260px !important;
+        left: 0px !important;
         cursor: pointer;
-        trasition: color 0.5s ease;
+        transition: color 0.5s ease;
         color: #000;
         background-color:rgb(255, 255, 255);
-        backdrop-filter: blur(10px);
         border-radius: 6px;
         padding: 20px 16px;
         box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.5);
+        z-index:2;
+        
 
         h4 {
             text-align: center;
             color: var( --color-icon-hover );
             padding-bottom: 5px;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: 900;
         }
 
@@ -105,8 +106,8 @@ export const Container = styled.div`
             align-items: center;
             height: 20px;
             width: 100%;
-            gap: 10px;
-            font-weight: 600;
+            gap: 8px;
+            font-weight: 500;
             font-size: 0.8rem;
             color: #000;
             word-spacing: 4px;
@@ -127,7 +128,6 @@ export const Container = styled.div`
             }
 
             .check-required {
-                color:  rgb(0, 0, 0);
                 background-color: rgb(0, 255, 68);
                 font-weight: 900;
                 font-size: 0.9rem;
@@ -138,19 +138,20 @@ export const Container = styled.div`
             @media (min-width: 1920px) {
                 font-size: 1.5vh;
             }
+
+           
         }
 
         &::after {
             content: "";
             position: absolute;
             top: 99%;
-            left: 23%;
+            left: 24%;
             margin-left: -10px;
             border-width: 10px;
             border-style: solid;
             border-color: rgb(255, 255, 255) transparent transparent transparent;
         }
-
 
         @media (min-width: 1920px) {
             top: -2vh;

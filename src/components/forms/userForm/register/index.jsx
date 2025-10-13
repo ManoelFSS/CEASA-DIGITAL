@@ -112,8 +112,7 @@ const Register = ({setSelectForm}) => {
                     $required 
                 />
                 <div className="text-check">
-                    <span>Eu li e concordo com os termos e condições</span>
-                    <span><a href="#">Termos e condições</a></span>
+                    <span>Eu li e concordo com os <a href="#">Termos e condições</a></span>
                 </div>
             </section>
             <section className="btns">

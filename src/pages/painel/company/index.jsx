@@ -26,9 +26,6 @@ const Company = () => {
 
     return (
         <Container_company >
-            {/* <section className="banner">
-                <h1>Dados da Empresa</h1>
-            </section> */}
             <div className="title">
                 <h3>Dados da Empresa</h3>
             </div>
@@ -43,8 +40,12 @@ const Company = () => {
                             <p>Trin-Codex</p>
                         </div>
                         <div>
-                            <h3>CNPJ:</h3>
+                            <h3>CPF |CNPJ:</h3>
                             <p>Trin-Codex</p>
+                        </div>
+                         <div>
+                            <h3>E-mail:</h3>
+                            <p>exemple@gmail.com</p>
                         </div>
                         <div>
                             <h3>Telefone:</h3>

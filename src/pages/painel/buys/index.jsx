@@ -32,35 +32,28 @@ import { IoMdPerson } from "react-icons/io";
 import useSelect from "../../../hooks/useSelect"
 // context
 import { useAuthContext } from "../../../context/AuthContext"
-import { useVendas } from "../../../context/VendasContext";
 import { useBuys } from "../../../context/BuysContext";
 import { useFornecedores } from "../../../context/FornecedoresContext";
-import { useDashboard } from "../../../context/DashboardContext";
 //image
 import Perfil from "../../../assets/perfil.png"
-// rota aninhada
-;
 
 const Buys = () => {;
 
-    const {comparativoCompras} = useDashboard();
     const { setIdFornecedor, caunterCompras} = useFornecedores();
 
     const { 
         buscarComprasPorAdmin,
         compras, setCompras,
         messege, setMessege,
-        closeModal, setCloseModal,
+        closeModal,
         buscarComprasSeach,
         editarCompra,
         idCompra, setIdCompra,
     } = useBuys();
     
-    const {user, setSelectForm, userId} = useAuthContext();
+    const {user, userId} = useAuthContext();
     const [valueSearch, setValueSearch] = useState('');
     const [dataNotFound, setDataNotFound] = useState(false);
-    const [cardList, setCardList] = useState(false);
-    const [btnName, setBtnName] = useState("Cadastrar");
     const [deleteControl, setDeleteControl] = useState(null);
     const [confirmCancelaCompra, setConfirmCancelaCompra] = useState(false);
     const [closeBtn, setCloseBtn] = useState(false);
@@ -68,6 +61,7 @@ const Buys = () => {;
     const [ano, setAno] = useState(new Date().getFullYear());
     const [compraModalDetails, setCompraModalDetails] = useState(false);
     const [textBtn, setTextBtn] = useState("Cancelar");
+    const [isSearchMode, setIsSearchMode] = useState(false); // novo
 
     const handleDateChange = ({ month, year }) => {
         setAno(year);
@@ -95,54 +89,66 @@ const Buys = () => {;
     const { select, setSelect } = useSelect();
     const [paginacao, setPaginacao] = useState(1);
 
-    const itemsPorPage = 100;
+    const itemsPorPage = 50;
     const totalPages = Math.ceil(caunterCompras / itemsPorPage);
 
+
+     // 🔹 Resetar paginação ao mudar mês/ano
     useEffect(() => {
-        if(totalPages > 1 ) return setPaginacao(1);
+        if(totalPages > 1 ) setPaginacao(1);
     }, [mes, ano]);
 
+     // 🔹 Buscar compras normais
     useEffect(() => {
+        if(isSearchMode) return; // 👈 volta para o modo normal
+
         setDataNotFound(false);
-        const  hendlerGetCompras = async () => {
-            const comprasData  = await  buscarComprasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
-            if(comprasData .length === 0) setTimeout(() => setDataNotFound(true), 2000);
-            setCompras(comprasData )
+        const hendlerGetCompras = async () => {
+            const vendaData = await  buscarComprasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
+            if(vendaData.length === 0) setTimeout(() => setDataNotFound(true), 2000);
+            setCompras(vendaData)
         }
         hendlerGetCompras();    
-    }, [closeModal, paginacao, deleteControl, mes, ano]);
+    }, [closeModal, paginacao, deleteControl, mes, ano, userId, isSearchMode]);
 
-
+     // Buscar compras quando usar pesquisa
     useEffect(() => {
-        const searchLength = valueSearch.split("").length;
+        const fetchSearch = async () => {
+            if (!isSearchMode) return; // só dispara se for busca
 
-        if(searchLength <= 0) {
-            const hendlerGetCompras = async () => {
-                const comprasData = await   buscarComprasPorAdmin(userId, itemsPorPage, paginacao, ano, mes);
-                if(comprasData .length === 0) setTimeout(() => setDataNotFound(true), 2000);
-                setCompras(comprasData )
-                
-            }
-            hendlerGetCompras();
+            setDataNotFound(false);
+            const compraSeach = await  buscarComprasSeach(valueSearch, userId, itemsPorPage, paginacao);
+            if(compraSeach.length === 0) setTimeout(() => setDataNotFound(true), 2000);
+            setCompras(compraSeach);
+        };
+        fetchSearch();
+    }, [paginacao, isSearchMode, valueSearch, userId]);
+
+     // 🔹 Resetar venda quando search for apagado
+    useEffect(() => {
+        if(valueSearch.length <= 0){
+            setIsSearchMode(false);
+            setPaginacao(1);
         }
     }, [valueSearch]);
 
     
-
+    // 🔹 Buscar compras no clique do search
     const hendlerGetCompraSearch = async () => {
+        if(!valueSearch) return;
+        setIsSearchMode(true);
+        setPaginacao(1);
         setCompras([])
-        const vendaSeach = await   buscarComprasSeach(valueSearch, userId);
+        const vendaSeach = await   buscarComprasSeach(valueSearch, userId, itemsPorPage, 1);
         if(vendaSeach.length === 0) setTimeout(() => setDataNotFound(true), 2000);
         setCompras(vendaSeach)
         console.log(vendaSeach)
     }
 
+
+    // 🔹 Cancelar compra
     useEffect(() => {
-
-        if(!confirmCancelaCompra) return
-        if(!idCompra) return
-
-        
+        if(!confirmCancelaCompra || !idCompra ) return
         const cancelarCompra = async () => {
             await editarCompra(idCompra, "Cancelada");
             setDeleteControl(!deleteControl)
@@ -152,7 +158,6 @@ const Buys = () => {;
             setConfirmCancelaCompra(false);
         }
         cancelarCompra(); 
-
     }, [confirmCancelaCompra]);
 
     const hendleCancelaCompra = (id) => {
@@ -161,24 +166,37 @@ const Buys = () => {;
         setCloseBtn(true);
     }
 
-    console.log(compras)
+
+     const totalPago = compras?.reduce((money, compra) => {
+        if (compra.status === "Paga") {
+            // soma valor total da venda
+            return money + (compra.valor_total || 0);
+        } else if (compra.parcelas_compra?.length) {
+            // soma apenas parcelas pagas
+            const parcelasPagas = compra.parcelas_compra
+                .filter(parcela => parcela.status === "Paga")
+                .reduce((total, compra) => total + (compra.valor_parcela || 0), 0);
+            return money + parcelasPagas;
+        }
+        return money;
+    }, 0);
+
+    const totalPagoFormatado = totalPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
         
-
-
     return (
         <Container>
             <section className="box-filter">
                 <div className="title">
                     <GiShoppingCart className="icon" />
                     <Title $text="Compras" $fontSize={"1.5rem"}  $cor={"var(  --color-text-primary )"} />
-                    <p>
-                        {compras
-                            ?.filter(item => item.status !== "Cancelada") // Remove canceladas
-                            .reduce((money, item) => money + item.valor_total, 0) // Soma só os válidos
-                            .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                        }
-                    </p>
+                    <p>{totalPagoFormatado}</p>
                 </div>
+                {totalPages > 1 && <Pagination 
+                    $totalPages={totalPages} 
+                    $paginacao={paginacao} 
+                    $setPaginacao={setPaginacao}
+                />}
                 <div className="filter">
                     <Select     
                         select={select} 
@@ -194,101 +212,90 @@ const Buys = () => {;
                         onClick={hendlerGetCompraSearch}
                     />
                     <MonthYearSelector userRegisterYear={user?.createdat?.slice(0, 4)} onChange={handleDateChange} />
-
-                    {totalPages > 1 && <Pagination 
-                        $totalPages={totalPages} 
-                        $paginacao={paginacao} 
-                        $setPaginacao={setPaginacao}
-                    />}
                 </div>
             </section>
             <ContainerTable>
-                {
-                    cardList ? (
-                    <>
-                    </>
-                    ) : (
-                    <section className="table">
-                        <div className="header">
-                            <ul className="header-list">
-                                {dataHeader.map((item, index) => (
-                                <li key={index}>
-                                    {item.name} {item.icon}
-                                </li>
-                                ))}
-                            </ul>
-                        </div>
-                        { compras?.length > 0 ? (
-                        <div className="body">
-                            { compras.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                            .filter(item => {
-                                const search = valueSearch.toLowerCase();
-                                const nomeInclui = item.name?.toLowerCase().includes(search);
-                                const contemTermo = nomeInclui
-                                if (select !== "Todas") return item.status === select && contemTermo;
-                                return contemTermo;
-                            })
-                            .map((item, index) => (
-                                <ul className="body-list" key={index} style={{ backgroundColor: item.created_at.split("T")[0] === new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }) ? "rgba(175, 188, 179, 0.72)" : "" }}>
-                                    <li><img src={item.url_image ? item.url_image : Perfil} alt="avatar" /></li>
-                                    <li>{item.name}</li>
-                                    <li>{item.phone}</li>
-                                    <li>{new Date(item.created_at).toLocaleDateString('pt-BR')}</li>
-                                    <li>{item.forma_pagamento}</li>
-                                    <li>{item.valor_total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</li>
-                                    <li>{item.valor_entrada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }</li>
-                                    <li>
-                                        <span style={{ 
-                                            backgroundColor: item.status === "Paga" ? "rgb(78, 138, 98)" : item.status === "Pendente" ? " #FFCB1F" : "rgb(211, 5, 5)",
-                                        }}>
-                                            {item.status}
-                                        </span>
-                                    </li>
-                                    <li className="icons">
-                                        <IoLogoWhatsapp
-                                            className="icon-whatsapp"
-                                            onClick={() =>
-                                                window.open(
-                                                `https://api.whatsapp.com/send?phone=55${item.phone.replace(/[^\d]/g, '')}`
-                                                )
-                                            }
-                                        />
-                                        <HiOutlineInformationCircle 
-                                            className="icon" 
-                                            style={{ color: "rgb(53, 53, 53)" }} 
-                                            onClick={() => {
-                                                setIdCompra(item.id);
-                                                setCompraModalDetails(true);
-                                            }}
-                                        />
-                                        <TbCancel  
-                                            className="icon" 
-                                            style={{ color: "rgb(224, 2, 2)" }} 
-                                            onClick={() => {
-                                                item.status !== "Cancelada" ? hendleCancelaCompra(item.id) : setMessege({title: "Atenção", message: "Essa compra ja foi cancelada!"});
-                                                item.status === "Cancelada" && setCloseBtn(false)
-                                                item.status === "Cancelada" && setTextBtn("OK");
-                                                setIdFornecedor(item.fornecedor_id);
-                                            }}
-                                        />
-                                    </li>
-                                </ul>
+                <section className="table">
+                    <div className="header">
+                        <ul className="header-list">
+                            {dataHeader.map((item, index) => (
+                            <li key={index}>
+                                {item.name} {item.icon}
+                            </li>
                             ))}
-                        </div>
-                        ) : !dataNotFound ? (
-                        <div style={{ margin: "auto" }}><Loading /></div>
-                        ) : (
-                        <p style={{ fontSize: "1.2rem", fontWeight: "bold", margin: "auto" }}>
-                            Nenhuma Compra cadastrada !
-                        </p>
-                        )}
-                    </section>
-                    )
-                }
-                </ContainerTable>
+                        </ul>
+                    </div>
+                    { compras?.length > 0 ? (
+                    <div className="body">
+                        { compras.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                        .filter(item => {
+                            const search = valueSearch.toLowerCase();
+                            const nomeInclui = item.name?.toLowerCase().includes(search);
+                            const contemTermo = nomeInclui
+                            if (select !== "Todas") return item.status === select && contemTermo;
+                            return contemTermo;
+                        })
+                        .map((item, index) => (
+                            <ul className="body-list" key={index} style={{ backgroundColor: item.created_at.split("T")[0] === new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }) ? "rgba(175, 188, 179, 0.72)" : "" }}>
+                                <li><img src={item.url_image ? item.url_image : Perfil} alt="avatar" /></li>
+                                <li>{item.name}</li>
+                                <li>{item.phone}</li>
+                                <li>{new Date(item.created_at).toLocaleDateString('pt-BR')}</li>
+                                <li>{item.forma_pagamento}</li>
+                                <li>{item.valor_total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</li>
+                                <li>{item.valor_entrada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }</li>
+                                <li>
+                                    <span style={{ 
+                                        backgroundColor: item.status === "Paga" ? "rgb(78, 138, 98)" : item.status === "Pendente" ? " #FFCB1F" : "rgb(211, 5, 5)",
+                                    }}>
+                                        {item.status}
+                                    </span>
+                                </li>
+                                <li className="icons">
+                                    <IoLogoWhatsapp
+                                        className="icon-whatsapp"
+                                        onClick={() =>
+                                            window.open(
+                                            `https://api.whatsapp.com/send?phone=55${item.phone.replace(/[^\d]/g, '')}`
+                                            )
+                                        }
+                                    />
+                                    <HiOutlineInformationCircle 
+                                        className="icon" 
+                                        style={{ color: "rgb(53, 53, 53)" }} 
+                                        onClick={() => {
+                                            setIdCompra(item.id);
+                                            setCompraModalDetails(true);
+                                        }}
+                                    />
+                                    <TbCancel  
+                                        className="icon" 
+                                        style={{ color: "rgb(224, 2, 2)" }} 
+                                        onClick={() => {
+                                            item.status !== "Cancelada" ? hendleCancelaCompra(item.id) : setMessege({title: "Atenção", message: "Essa compra ja foi cancelada!"});
+                                            item.status === "Cancelada" && setCloseBtn(false)
+                                            item.status === "Cancelada" && setTextBtn("OK");
+                                            setIdFornecedor(item.fornecedor_id);
+                                        }}
+                                    />
+                                </li>
+                            </ul>
+                        ))}
+                    </div>
+                    ) : !dataNotFound ? (
+                    <div style={{ margin: "auto" }}><Loading /></div>
+                    ) : (
+                    <p style={{ fontSize: "1.2rem", fontWeight: "bold", margin: "auto" }}>
+                        Nenhuma Compra cadastrada !
+                    </p>
+                    )}
+                </section>
+            </ContainerTable>
 
-            {closeModal && <ProductForm  $color={"#fff"} setCloseModal={setCloseModal} btnName={btnName} setBtnName={setBtnName} />}
-            { messege && <Messege setIdVenda={setIdCompra} setTextBtn={setTextBtn} $buttonText={textBtn} button={closeBtn && <BtnNavigate $text="Sim" onClick={() => setConfirmCancelaCompra(true)} />} $title={messege.title} $text={messege.message} $setMessege={setMessege} /> }
+            { messege && 
+                <Messege setIdVenda={setIdCompra} setTextBtn={setTextBtn} $buttonText={textBtn} button={closeBtn &&     <BtnNavigate $text="Sim" onClick={() => setConfirmCancelaCompra(true)} />} $title={messege.title} $text=    {messege.message} $setMessege={setMessege} 
+                /> 
+            }
             { compraModalDetails && 
                 <CompraDetails  
                     setCompraModalDetails={setCompraModalDetails} 

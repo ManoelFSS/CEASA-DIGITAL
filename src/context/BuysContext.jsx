@@ -10,7 +10,7 @@ const BuysContext = createContext();
 
 export const BuysProvider = ({ children }) => {
 
-    const { reloadDashboard, setReloadDashboard } = useDashboard();
+    const {setReloadDashboard } = useDashboard();
     const { idFornecedor, atualizarStatusParaDebitos, setCaunterCompras } = useFornecedores();
     const { userId} = useAuthContext();
 
@@ -23,61 +23,6 @@ export const BuysProvider = ({ children }) => {
     const [name, setName] = useState('');// controle do campo name
     const [phone, setPhone] = useState('');// controle do campo phone
     const [idCompra, setIdCompra] = useState('');// controle do campo idClient
-
-
-    // const editarCompra = async (compra_id, status) => {
-    //     try {
-    //         const { data: compraAtualizada, error: erroCompra } = await supabase
-    //             .from('compras')
-    //             .update({ status })
-    //             .eq('id', compra_id);
-
-    //         if (erroCompra) {
-    //             console.error('[ERRO VENDA] Falha ao atualizar status da compra:', {
-    //                 compra_id,
-    //                 status,
-    //                 erro: erroCompra.message,
-    //             });
-    //             return;
-    //         }
-
-    //         console.log('[SUCESSO COMPRA] compra atualizada com sucesso:', compraAtualizada);
-
-    //         if (status === "Cancelada") {
-    //             const { data: parcelasAtualizadas, error: erroParcelas } = await supabase
-    //                 .from('parcelas_compra')
-    //                 .update({ status: "Cancelada" })
-    //                 .eq('compra_id', compra_id);
-
-    //             if (erroParcelas) {
-    //                 console.error('[ERRO PARCELAS] Falha ao cancelar parcelas da compra:', {
-    //                     compra_id,
-    //                     erro: erroParcelas.message,
-    //                 });
-    //             } else {
-    //                 console.log('[SUCESSO PARCELAS] Parcelas canceladas com sucesso:', parcelasAtualizadas);
-    //                 setReloadDashboard(!reloadDashboard); // reload dasboard
-    //             }
-
-    //             console.log(userId)
-    //             console.log(idFornecedor)
-
-    //             const getNumeroDeVendasDoFornecedor = await contarCompraPendentesOuAtrasadas(userId, idFornecedor);
-    //             console.log("contarCompra", getNumeroDeVendasDoFornecedor);
-    //             if(getNumeroDeVendasDoFornecedor === 0) {
-    //                 await atualizarStatusParaDebitos(idFornecedor, "Nada a Pagar");
-    //                 console.log("Fornecedor nao tem nemhuma venda pendente, status Em Dias"); ///////////////////
-    //             }
-    //         }
-
-    //     } catch (err) {
-    //         console.error('[ERRO GERAL] Erro inesperado ao editar a compra:', {
-    //             compra_id,
-    //             status,
-    //             erro: err.message,
-    //         });
-    //     }
-    // };
 
 
     const editarCompra = async (compra_id, status) => {
@@ -114,8 +59,6 @@ export const BuysProvider = ({ children }) => {
             });
         }
     };
-
-
 
 
    // Função principal para buscar vendas de um admin com paginação, incluindo pendentes ou atrasadas
@@ -169,28 +112,47 @@ export const BuysProvider = ({ children }) => {
         }
     };
 
-    
-    const buscarComprasSeach = async (searchText, adminId) => {
+    const buscarComprasSeach = async (searchText, adminId, limitepage, paginacao) => {
         if (!searchText || !adminId) return [];
 
         try {
-            // Normaliza o texto
             const texto = `%${searchText.toLowerCase()}%`;
-            // Busca múltiplas colunas com `or`
+            // Calcular range de paginação
+            const from = (paginacao - 1) * limitepage;
+            const to = from + limitepage - 1;
+
+            // Buscar total de registros da busca
+            const { count, error: countError } = await supabase
+                .from("compras")
+                .select("id", { count: "exact", head: true })
+                .eq("adminid", adminId)
+                .or(`name.ilike.${texto},phone.ilike.${texto}`);
+
+            if (countError) throw countError;
+             setCaunterCompras(count); // atualiza total para a paginação
+
+            // Buscar os registros paginados **com parcelas e itens**
             const { data, error } = await supabase
-            .from("compras")
-            .select("*")
-            .eq("adminid", adminId)
-            .or(`name.ilike.${texto},phone.ilike.${texto}`);
+                .from("compras")
+                .select(`
+                    *,
+                    parcelas_compra(*),
+                    itens_compra(*)
+                `)
+                .eq("adminid", adminId)
+                .or(`name.ilike.${texto},phone.ilike.${texto}`)
+                .order("created_at", { ascending: false })
+                .range(from, to);
 
             if (error) throw error;
 
             return data;
         } catch (error) {
-            console.error("Erro ao buscar compra:", error.message || error);
+            console.error("Erro ao buscar compras:", error.message || error);
             return [];
         }
     };
+
 
     const editarParcelaStatus = async (parcela_id, status)  => {
         const { data, error } = await supabase
