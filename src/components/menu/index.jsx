@@ -83,12 +83,12 @@ const Menu = ({$setToogleMenu}) => {
                         Relatórios
                     </li>
                 </Link> */}
-                <Link className="link" to="/company" onClick={() => $setToogleMenu(false)}>
+                {/* <Link className="link" to="/company" onClick={() => $setToogleMenu(false)}>
                     <li className={activeLink === "/company" ? "active" : ""}>
                         <FaBuildingCircleExclamation className="icon" />
                         Empresa
                     </li>
-                </Link>
+                </Link> */}
                 {/* <Link className="link" to="/users" onClick={() => $setToogleMenu(false)}>
                     <li className={activeLink === "/users" ? "active" : ""}>
                         <MdAdminPanelSettings className="icon" />

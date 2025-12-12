@@ -1,10 +1,10 @@
 import styled from "styled-components";
 
 export const Input = styled.input`
-    height: 35px;
+    height:  50px;
     width: 100%;
     background-color:rgb(255, 255, 255);
-    padding-left: 10px;
+    padding-left: 16px;
     border-radius: 5px;
     border: none;
     color: var( --color-text-primary );
@@ -36,7 +36,7 @@ export const Container = styled.div`
     
     .icon {
         position: absolute;
-        top: 9px;
+        top: 16px;
         right: 10px;
         cursor: pointer;
         transition: color 0.3s ease;

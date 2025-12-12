@@ -8,7 +8,6 @@ import Messege from "../../components/messege";
 // context
 import { useAuthContext } from "../../context/AuthContext";
 // icons
-import { FaWhatsapp, FaInstagram  } from "react-icons/fa";
 
 const Login = () => {
     const { messege, setMessege, selectForm, setSelectForm } = useAuthContext();
@@ -20,7 +19,6 @@ const Login = () => {
                     <img src={Logo} alt="logo"/>
                     <div>
                         <h1>CEASA DIGITAL</h1>
-                        <p>Tudo que você precisa.</p>
                     </div>
                 </div>
             </section>
@@ -31,7 +29,7 @@ const Login = () => {
                     { selectForm === "password" && <Password_Recovery  setSelectForm={setSelectForm} />}
                     { messege && <Messege $setMessege={setMessege} $buttonText="OK" $title={messege.title} $text={messege.message} /> }
                 </div>
-                <p className="copyright"> © 2025 Trin-Codex - Todos os direitos reservados.</p>
+                <p className="copyright"> © 2025 Trin-Codex - (74)93505-0160</p>
             </section>
         </Container_login>
     )

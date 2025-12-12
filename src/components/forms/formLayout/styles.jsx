@@ -61,7 +61,6 @@ export const Container = styled.div`
     .box-check {
         display: flex;
         align-items: center;
-        border: solid 1px #ff0000;
 
         .checkd {
             width: 20px;
@@ -77,9 +76,10 @@ export const Container = styled.div`
 
         .text-check {
             width: 280px;
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 900;
             padding: 10px 10px 10px 20px ;
+            background: url('LINK AQUI') no-repeat center center / cover;
 
             a {
                 font-size: 1rem;
